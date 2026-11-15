@@ -1,0 +1,48 @@
+diff --git a/sdk/trts/linux/trts_mitigation.S b/sdk/trts/linux/trts_mitigation.S
+index cbfa6c2f..aa03de51 100644
+--- a/sdk/trts/linux/trts_mitigation.S
++++ b/sdk/trts/linux/trts_mitigation.S
+@@ -192,6 +192,15 @@ aex_notify_c3_cache:
+ #define INFO_FLAGS_OFFSET             (16*SE_WORDSIZE)
+ #define INFO_RIP_OFFSET               (17*SE_WORDSIZE)
+ 
++DECLARE_LOCAL_FUNC cselect_mitigation_rip
++    mov     INFO_RIP_OFFSET(%rdi), %rax
++    mov     INFO_RSP_OFFSET(%rdi), %rsi
++    lea_pic __ct_mitigation_end, %rdx
++    sub     %rax, %rdx
++    cmp     $(__ct_mitigation_end - __ct_mitigation_begin + 1), %rdx
++    cmovb   RSVD_RIP_OFFSET(%rsi), %rax
++    ret
++
+ DECLARE_LOCAL_FUNC constant_time_apply_sgxstep_mitigation_and_continue_execution
+ /* Note: moving rsp upwards as a scratchpad register discards any data at lower
+  * addresses (i.e., these may be overwritten by nested exception handlers, but
+diff --git a/sdk/trts/trts_veh.cpp b/sdk/trts/trts_veh.cpp
+index a30f1ed3..17515fae 100644
+--- a/sdk/trts/trts_veh.cpp
++++ b/sdk/trts/trts_veh.cpp
+@@ -73,6 +73,7 @@ sgx_mm_pfhandler_t g_mm_pfhandler = NULL;
+ #define DEC_VEH_POINTER(x)  (sgx_exception_handler_t)((x) ^ g_veh_cookie)
+ extern int g_aexnotify_supported;
+ extern "C" sgx_status_t sgx_apply_mitigations(const sgx_exception_info_t *);
++extern "C" uint64_t cselect_mitigation_rip(const sgx_exception_info_t *);
+ 
+ extern uint16_t aex_notify_c3_cache[2048];
+ extern uint8_t *__ct_mitigation_ret;
+@@ -260,7 +261,15 @@ static void apply_constant_time_sgxstep_mitigation_and_continue_execution(sgx_ex
+         }
+     }
+ 
++
++    /*
++     * Ensure the RIP dereferenced by CTD remains identical when zero-stepping
++     * the atomic mitigation stub.
++     */
++    uint64_t irq_rip = info->cpu_context.rip;
++    info->cpu_context.rip = cselect_mitigation_rip(info);
+     ct_result = ct_decode(&info->cpu_context, &data_address);
++    info->cpu_context.rip = irq_rip;
+ 
+     data_tickle_address = stack_tickle_pages & ~0x1;
+     data_tickle_address = cselect64(ct_result, 1, data_address, data_tickle_address);

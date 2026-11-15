@@ -1,0 +1,127 @@
+diff --git a/sdk/trts/ctd.c b/sdk/trts/ctd.c
+index ef532e80..79b587b7 100644
+--- a/sdk/trts/ctd.c
++++ b/sdk/trts/ctd.c
+@@ -37,6 +37,10 @@
+ 
+ #include "ctd.h"
+ 
++#ifdef CTD_FIX
++    #include <emmintrin.h>
++#endif
++
+ #define NUM_MM_REGS 16
+ 
+ typedef long long __m128i __attribute__((__vector_size__(16), __may_alias__));
+@@ -730,10 +734,12 @@ static uint8_t extension_2op_table[16] = {
+ 
+ #define _mm_or_si128(val1, val2) ((__m128i)((__v2du)val1 | (__v2du)val2))
+ 
++#ifndef CTD_FIX
+ extern __inline __m128i __attribute__((__gnu_inline__, __always_inline__, __artificial__)) _mm_loadu_si128 (__m128i_u const *__P)
+ {
+     return *__P;
+ }
++#endif
+ 
+ #define _mm256_set1_epi64x(val1) (__extension__(__m256i)(__v4di){val1, val1, val1, val1})
+ 
+@@ -1094,6 +1100,7 @@ int ct_decode(sgx_cpu_context_t *ctx, uint64_t *addr)
+             : : "r" (mm_regs) : "memory"
+         );
+     }
++
+     // properly handle the cross page read
+     uint8_t *input = (uint8_t *)(ctx->rip);
+     uint8_t *rip_pfn = (uint8_t *) (((uint64_t) input) & (uint64_t)(~0xFFF));
+@@ -1105,13 +1112,36 @@ int ct_decode(sgx_cpu_context_t *ctx, uint64_t *addr)
+     __m128i_u* loc = (__m128i_u *) ((uint64_t) rip_pfn | (uint64_t)rip_idx_masked);
+     __m128i instr_data = _mm_loadu_si128(loc);
+ 
++    printf("instr_data       : ");
++    dump_hex((uint8_t*) &instr_data, 16);
++
+     // finally combine both as needed
+     // this is also the K bytes that we failed to protect
+     uint32_t shift_amount = cselect((uint64_t) rip_idx > (4096 - 16), 16 - (uint32_t)(4096 - (uint64_t)rip_idx), 0);
+     //we need to make a _m256i first then do the shift
+     //suppose if it across the page, we just pad with 0x00
++#ifdef CTD_FIX
++    /* NOTE: `_mm_srli_si128` (i.e., PSLLDQ) only works for compile-time
++     * constant immediate operands, so we have to use a cst-time emulation
++     * sequence here (see https://stackoverflow.com/a/34482688).
++     */
++    int count = shift_amount * 8;
++
++    __m128i carry1 = _mm_bsrli_si128(instr_data, 8);
++    __m128i instr_data1 = _mm_srli_epi64(carry1, count-64);
++
++    __m128i carry2 = _mm_slli_epi64(carry1, 64-count);
++    __m128i instr_data2 = _mm_srli_epi64(instr_data, count);
++    instr_data2 = _mm_or_si128(instr_data2, carry2);
++
++    instr_data[0] = cselect64s(count >= 64, instr_data1[0], instr_data2[0]);
++    instr_data[1] = cselect64s(count >= 64, instr_data1[1], instr_data2[1]);
++#else
+     instr_data = instr_data << shift_amount;
++#endif
+ 
++    printf("instr_data << %2d : ", shift_amount);
++    dump_hex((uint8_t*) &instr_data, 16);
+ 
+     // the data is the original data 8 bytes from the target memory
+     uint64_t data = load_u64(instr_data);
+diff --git a/sdk/trts/ctd.h b/sdk/trts/ctd.h
+index bac7ea9c..7844c8e0 100644
+--- a/sdk/trts/ctd.h
++++ b/sdk/trts/ctd.h
+@@ -37,10 +37,49 @@
+ 
+ #ifndef _CTD_H_
+ #define _CTD_H_
++
++#ifndef CTD_UNIT_TEST 
++
+ #include "se_types.h"
+ #include "sgx_trts_exception.h"
+ #include "se_cpu_feature.h"
+ 
++#else /* CTD_UNIT_TEST  */
++
++#include <stdio.h>
++#include <stdlib.h>
++#include <stdint.h>
++
++typedef struct _cpu_context_t
++{   
++    uint64_t rax;
++    uint64_t rcx;
++    uint64_t rdx;
++    uint64_t rbx;
++    uint64_t rsp;
++    uint64_t rbp;
++    uint64_t rsi;
++    uint64_t rdi;
++    uint64_t r8;
++    uint64_t r9;
++    uint64_t r10;
++    uint64_t r11;
++    uint64_t r12;
++    uint64_t r13;
++    uint64_t r14;
++    uint64_t r15;
++    uint64_t rflags;
++    uint64_t rip;
++} sgx_cpu_context_t;
++
++#define CPU_FEATURE_AVX512F 0x0
++
++extern int g_cpu_feature_indicator;
++
++void dump_hex(uint8_t *buf, int len);
++
++#endif /* CTD_UNIT_TEST  */
++
+ #ifdef __cplusplus
+ extern "C" {
+ #endif
