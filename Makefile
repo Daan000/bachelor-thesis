@@ -5,11 +5,11 @@ ifeq ($(CTD_FIX),1)
 endif
 
 all: ctd_test
-	objdump -D main
-	./main
+	objdump -D ctd/main
+	python3 main.py
 
-ctd_test: main.c ctd.c asm.S
-	gcc $(CFLAGS) ctd.c main.c asm.S -o main
+ctd_test: ctd/main.c ctd/ctd.c ctd/asm.S
+	gcc $(CFLAGS) ctd/ctd.c ctd/main.c ctd/asm.S -o ctd/main
 
 clean:
 	rm -Rf ctd_test

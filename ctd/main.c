@@ -16,7 +16,7 @@ void dump_hex(uint8_t *buf, int len)
     // printf("\n");
 }
 
-void main(int argc, char *argv[])
+int main(int argc, char *argv[])
 {
     if (argc < 2) {
         printf("Usage: %s <argument>\n", argv[0]);
@@ -67,5 +67,6 @@ void main(int argc, char *argv[])
     printf("RIP @%#lx -> %#lx\n", sgx.rip, *((uint64_t*)sgx.rip));
     rv = ct_decode(&sgx, &ans);
     printf("\n");
-    printf("rv = %d; ans=%lx\n", rv, ans);
+    printf("rv = %d; ans=%lx", rv, ans);
+    return 0;
 }
