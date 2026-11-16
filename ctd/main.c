@@ -30,15 +30,15 @@ int main(int argc, char *argv[])
     sgx_cpu_context_t sgx;
     memset(&sgx, 0x0, sizeof(sgx)); // set all registers to 0
     // set location of next instruction (Regsiter Instruction Pointer)
-    sgx.rip = (uint64_t) put_instruction_on_page(offset, &instruction, 1);
+    sgx.rip = (uint64_t) put_instruction_on_page(offset, &instruction, 15);
     sgx.rax = 0xdeadbeefcafebabe;
     sgx.r8 = 0x0123456789abcdef;
     
     int rv;
     uint64_t ans;
-    printf("RIP @%#lx -> %#lx\n", sgx.rip, *((uint64_t*)sgx.rip));
+    // printf("RIP @%#lx -> %#lx\n", sgx.rip, *((uint64_t*)sgx.rip));
     rv = ct_decode(&sgx, &ans);
     printf("\n");
-    printf("rv = %d; ans=%lx", rv, ans);
+    printf("rv = %d; ans=%lx\n", rv, ans);
     return 0;
 }
