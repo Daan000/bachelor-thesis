@@ -1,9 +1,9 @@
 import subprocess
 
 
-def run_ctd_test(value):
+def run_ctd_test(offset, instruction):
     # Pass the command and its arguments as a list
-    result = subprocess.run(["./ctd/main", str(hex(value))], capture_output=True, text=True)
+    result = subprocess.run(["./ctd/main", str(hex(offset)), str(hex(instruction))], capture_output=True, text=True)
 
     if result.returncode != 0:
         raise ValueError(f"Returncode is {result.returncode}.")

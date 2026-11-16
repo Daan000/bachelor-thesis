@@ -11,9 +11,9 @@ int g_cpu_feature_indicator = 0x0;
 
 void dump_hex(uint8_t *buf, int len)
 {
-    // for (int i=0; i < len; i++)
-    //     printf("%02x", *(buf + i));
-    // printf("\n");
+    for (int i=0; i < len; i++)
+        printf("%02x", *(buf + i));
+    printf("\n");
 }
 
 int main(int argc, char *argv[])
@@ -31,8 +31,8 @@ int main(int argc, char *argv[])
     memset(&sgx, 0x0, sizeof(sgx)); // set all registers to 0
     // set location of next instruction (Regsiter Instruction Pointer)
     sgx.rip = (uint64_t) put_instruction_on_page(offset, &instruction, 15);
-    sgx.rax = 0xdeadbeefcafebabe;
-    sgx.r8 = 0x0123456789abcdef;
+    // sgx.rax = 0xdeadbeefcafebabe;
+    // sgx.r8 = 0x0123456789abcdef;
     
     int rv;
     uint64_t ans;
