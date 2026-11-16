@@ -1,4 +1,4 @@
-Run in a linux environment:
+Run in a linux environment (e.g. wsl):
 
 ```
 make clean all
