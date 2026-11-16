@@ -17,7 +17,7 @@ int main(void) {
     // 48 89 e5                -> mov rbp, rsp
     // 48 83 ec 10             -> sub rsp, 0x10
     // c3                      -> ret
-    uint8_t binary_code[] = { 0x55, 0x48, 0x89, 0xe5, 0x48, 0x83, 0xec, 0x10, 0xc3 };
+    uint8_t binary_code[] = { 0x41, 0x89, 0x48, 0x3c};
     size_t code_len = sizeof(binary_code);
     size_t offset = 0;
     uint64_t runtime_addr = 0x1000; // Simulated starting memory address

@@ -1112,8 +1112,8 @@ int ct_decode(sgx_cpu_context_t *ctx, uint64_t *addr)
     __m128i_u* loc = (__m128i_u *) ((uint64_t) rip_pfn | (uint64_t)rip_idx_masked);
     __m128i instr_data = _mm_loadu_si128(loc);
 
-    // printf("instr_data       : ");
-    // dump_hex((uint8_t*) &instr_data, 16);
+    printf("instr_data       : ");
+    dump_hex((uint8_t*) &instr_data, 16);
 
     // finally combine both as needed
     // this is also the K bytes that we failed to protect

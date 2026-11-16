@@ -1,11 +1,11 @@
 #include "ctd.h"
 #include "parser.c"
 #include "placement.c"
+// #include "xed-decoder.c"
 
 #include <string.h>
 #include <stdint.h>
 #include <inttypes.h>
-
 
 int g_cpu_feature_indicator = 0x0;
 
@@ -32,7 +32,7 @@ int main(int argc, char *argv[])
     // set location of next instruction (Regsiter Instruction Pointer)
     sgx.rip = (uint64_t) put_instruction_on_page(offset, &instruction, 15);
     // sgx.rax = 0xdeadbeefcafebabe;
-    // sgx.r8 = 0x0123456789abcdef;
+    sgx.r8 = 0x0123456789abcdef;
     
     int rv;
     uint64_t ans;
@@ -40,5 +40,6 @@ int main(int argc, char *argv[])
     rv = ct_decode(&sgx, &ans);
     printf("\n");
     printf("rv = %d; ans=%lx\n", rv, ans);
+    // xed
     return 0;
 }
