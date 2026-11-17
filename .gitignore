@@ -7,6 +7,4 @@
 # Unignore all dirs
 !*/
 
-main
-__pycache__
 xed-workspace
