@@ -7,8 +7,8 @@ endif
 all: ctd_test
 # 	objdump -D main
 
-ctd_test: main.c ctd/ctd.c parser.c placement.c ctd/asm.S
-	gcc $(CFLAGS) ctd/ctd.c main.c parser.c placement.c ctd/asm.S -o main
+ctd_test: src/main.c src/ctd/ctd.c src/parser.c src/placement.c src/ctd/asm.S
+	gcc $(CFLAGS) src/ctd/ctd.c src/main.c src/parser.c src/placement.c src/ctd/asm.S -o main
 
 clean:
 	rm -f ctd_test main

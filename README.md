@@ -7,7 +7,7 @@ make clean all
 Manual compile:
 
 ```
-gcc -mavx2 -O3 -masm=intel -g -DCTD_UNIT_TEST ctd/ctd.c main.c parser.c placement.c ctd/asm.S -o main
+gcc -mavx2 -O3 -masm=intel -g -DCTD_UNIT_TEST src/ctd/ctd.c src/main.c src/parser.c src/placement.c src/ctd/asm.S -o main
 ```
 
 ## Compile xed test script:
@@ -15,7 +15,7 @@ gcc -mavx2 -O3 -masm=intel -g -DCTD_UNIT_TEST ctd/ctd.c main.c parser.c placemen
 With XED installed in `xed-workspace/xed-install` (this repo layout):
 
 ```
-gcc ai-xed.c -o ai-xed \
+gcc src/ai-xed.c -o ai-xed \
   -Ixed-workspace/xed-install/include \
   -Lxed-workspace/xed-install/lib -lxed \
   -Wl,-rpath,'$ORIGIN/xed-workspace/xed-install/lib'
@@ -25,7 +25,7 @@ gcc ai-xed.c -o ai-xed \
 If you have XED installed system-wide instead:
 
 ```
-gcc ai-xed.c -o ai-xed -I/usr/local/include -L/usr/local/lib -lxed && ./ai-xed
+gcc src/ai-xed.c -o ai-xed -I/usr/local/include -L/usr/local/lib -lxed && ./ai-xed
 ```
 
 ```
