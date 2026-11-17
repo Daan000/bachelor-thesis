@@ -1,7 +1,7 @@
 #include "ctd/ctd.h"
+#include "xed.h"
 #include "parser.h"
 #include "placement.h"
-// #include "xed-decoder.c"
 
 #include <string.h>
 #include <stdint.h>
@@ -64,6 +64,14 @@ int main(int argc, char *argv[])
     rv = ct_decode(&sgx, &ans);
     printf("\n");
     printf("rv = %d; ans=%lx\n", rv, ans);
-    // xed
+
+    int xed_rv = disassemble_with_xed(instruction_bytes, sizeof(instruction), (uint64_t)instruction_address);
+    printf("xed_rv = %d\n", xed_rv);
+    if (xed_rv != 0)
+    {
+        fprintf(stderr, "Error: XED disassembly failed.\n");
+        return 1;
+    }
+
     return 0;
 }
