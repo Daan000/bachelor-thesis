@@ -7,4 +7,6 @@
 # Unignore all dirs
 !*/
 
+*.pyc
+
 xed-workspace
