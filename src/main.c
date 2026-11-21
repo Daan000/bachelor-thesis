@@ -1,7 +1,7 @@
 #include "ctd/ctd.h"
+#include "xed.h"
 #include "parser.h"
 #include "placement.h"
-// #include "xed-decoder.c"
 
 #include <string.h>
 #include <stdint.h>
@@ -15,6 +15,18 @@ void dump_hex(uint8_t *buf, int len)
     for (int i = 0; i < len; i++)
         printf("%02x", *(buf + i));
     printf("\n");
+}
+
+static void print_xed_answer(const xed_answer_t *answer, uint64_t rax)
+{
+    if (answer->memop_count == 0)
+    {
+        printf("no memory operand; RAX=%#" PRIx64 "\n", rax);
+        return;
+    }
+
+    for (unsigned int i = 0; i < answer->memop_count; i++)
+        printf("xed_memop%u = %#" PRIx64 "\n", i, answer->memop_addresses[i]);
 }
 
 int main(int argc, char *argv[])
@@ -63,12 +75,30 @@ int main(int argc, char *argv[])
     sgx.rax = 0xdeadbeefcafebabe;
     sgx.r8 = 0x0123456789abcdef;
 
-    int rv;
-    uint64_t ans;
-    // printf("RIP @%#lx -> %#lx\n", sgx.rip, *((uint64_t*)sgx.rip));
-    rv = ct_decode(&sgx, &ans);
+    uint64_t ans = 0;
+    int rv = ct_decode(&sgx, &ans);
     printf("\n");
-    printf("rv = %d; ans=%lx\n", rv, ans);
-    // xed
+    printf("rv = %d; ans=%#" PRIx64 "\n", rv, ans);
+
+    xed_context context;
+    context.rax = sgx.rax;
+    context.r8 = sgx.r8;
+    context.rip = sgx.rip;
+
+    xed_answer_t xed_answer;
+    xed_answer.memop_count = 0;
+    xed_answer.memop_addresses[0] = 0;
+    xed_answer.memop_addresses[1] = 0;
+
+    int xed_rv = disassemble_with_xed(instruction_bytes, sizeof(instruction), (uint64_t)instruction_address, &context, &xed_answer);
+    printf("xed_rv = %d\n", xed_rv);
+    if (xed_rv != 0)
+    {
+        fprintf(stderr, "Error: XED disassembly failed.\n");
+        return 1;
+    }
+
+    print_xed_answer(&xed_answer, context.rax);
+
     return 0;
 }

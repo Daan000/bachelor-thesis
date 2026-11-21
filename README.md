@@ -1,33 +1,55 @@
-Run in a linux environment (e.g. wsl):
+# Bachelor thesis
 
-```
+## Requirements
+
+- Linux (or WSL)
+- GCC
+- Intel XED installed in `~/.local/xed-install`
+- make
+
+The XED installation must contain `include/xed/xed-interface.h` and
+`lib/libxed.so`.
+
+## Build
+
+Build the program with:
+
+```bash
 make clean all
 ```
 
-Manual compile:
+By default, the `Makefile` uses XED from `~/.local/xed-install`. For another
+installation location, pass `XED_DIR`:
 
-```
-gcc -mavx2 -O3 -masm=intel -g -DCTD_UNIT_TEST src/ctd/ctd.c src/main.c src/parser.c src/placement.c src/ctd/asm.S -o main
-```
-
-## Compile xed test script:
-
-With XED installed in `xed-workspace/xed-install` (this repo layout):
-
-```
-gcc src/ai-xed.c -o ai-xed \
-  -Ixed-workspace/xed-install/include \
-  -Lxed-workspace/xed-install/lib -lxed \
-  -Wl,-rpath,'$ORIGIN/xed-workspace/xed-install/lib'
-./ai-xed
+```bash
+make clean all XED_DIR=/path/to/xed-install
 ```
 
-If you have XED installed system-wide instead:
+Set `CTD_FIX=1` to enable the CTD fix:
 
-```
-gcc src/ai-xed.c -o ai-xed -I/usr/local/include -L/usr/local/lib -lxed && ./ai-xed
+```bash
+make clean all CTD_FIX=1
 ```
 
-```
+## Run
+
+`main` runs the CTD decoder and then disassembles the same instruction with
+XED:
+
+```bash
 ./main 0x0 0x483c
+```
+
+The output includes the CTD result and the XED disassembly, for example:
+
+```text
+rv = 0; ans=deadbeefcafebabe
+xed = cmp al, 0x48
+xed_rv = 0
+```
+
+## Clean
+
+```bash
+make clean
 ```
