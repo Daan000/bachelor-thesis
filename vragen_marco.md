@@ -16,3 +16,6 @@ char *instruction_address = put_instruction_on_page(
     sizeof(instruction_bytes)
 );
 ```
+4. Wat is de planning voor het komende?
+
+-> lijkt me interessant om een soort kalender in de presentatie te zetten
