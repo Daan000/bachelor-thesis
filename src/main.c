@@ -1,7 +1,7 @@
 #include "ctd/ctd.h"
+#include "xed.h"
 #include "parser.h"
 #include "placement.h"
-// #include "xed-decoder.c"
 
 #include <string.h>
 #include <stdint.h>
@@ -29,18 +29,13 @@ int main(int argc, char *argv[])
     uint64_t instruction;
     uint8_t instruction_bytes[15] = {0};
 
+    // Check if parsing was error free, the return value of parse_hex is a status code
     if (parse_hex(argv[1], &offset) != 0 || parse_hex(argv[2], &instruction) != 0)
     {
         return 1;
     }
 
     memcpy(instruction_bytes, &instruction, sizeof(instruction));
-
-    if (offset > SIZE_MAX)
-    {
-        fprintf(stderr, "Error: Offset is too large for this platform.\n");
-        return 1;
-    }
 
     // Create sgx context
     sgx_cpu_context_t sgx;
@@ -63,12 +58,30 @@ int main(int argc, char *argv[])
     sgx.rax = 0xdeadbeefcafebabe;
     sgx.r8 = 0x0123456789abcdef;
 
-    int rv;
-    uint64_t ans;
-    // printf("RIP @%#lx -> %#lx\n", sgx.rip, *((uint64_t*)sgx.rip));
-    rv = ct_decode(&sgx, &ans);
+    uint64_t ans = 0;
+    int rv = ct_decode(&sgx, &ans);
     printf("\n");
-    printf("rv = %d; ans=%lx\n", rv, ans);
-    // xed
+    printf("rv = %d; ans=%#" PRIx64 "\n", rv, ans);
+
+    xed_context context;
+    context.rax = sgx.rax;
+    context.r8 = sgx.r8;
+    context.rip = sgx.rip;
+
+    xed_answer_t xed_answer;
+    xed_answer.memop_count = 0;
+    xed_answer.memop_addresses[0] = 0;
+    xed_answer.memop_addresses[1] = 0;
+
+    int xed_rv = disassemble_with_xed(instruction_bytes, sizeof(instruction), (uint64_t)instruction_address, &context, &xed_answer);
+
+    if (xed_rv != 0)
+    {
+        fprintf(stderr, "Error: XED disassembly failed.\n");
+        return 1;
+    }
+
+    print_xed_answer(&xed_answer, context.rax);
+
     return 0;
 }
