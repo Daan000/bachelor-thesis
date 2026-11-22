@@ -1,8 +1,23 @@
 #include "xed.h"
 
+#include <inttypes.h>
 #include <stdio.h>
 #include "xed/xed-interface.h"
 
+void print_xed_answer(const xed_answer_t *answer, uint64_t rax)
+{
+    if (answer->memop_count == 0)
+    {
+        printf("no memory operand; RAX=%#" PRIx64 "\n", rax);
+        return;
+    }
+
+    // maximum 2 iteraties
+    for (unsigned int i = 0; i < answer->memop_count; i++)
+        printf("xed_memop%u = %#" PRIx64 "\n", i, answer->memop_addresses[i]);
+}
+
+// Provides xed the register context
 static xed_uint64_t xed_register_callback(xed_reg_enum_t reg, void *context, xed_bool_t *error)
 {
     const xed_context *c = (const xed_context *)context;
@@ -21,6 +36,7 @@ static xed_uint64_t xed_register_callback(xed_reg_enum_t reg, void *context, xed
     }
 }
 
+// Not relevant for us (I think)
 static xed_uint64_t xed_segment_callback(xed_reg_enum_t reg, void *context, xed_bool_t *error)
 {
     (void)reg;
@@ -34,11 +50,11 @@ int disassemble_with_xed(const uint8_t *binary_code, size_t code_len, uint64_t r
 {
     answer->memop_count = 0;
 
-    // 1. Initialize XED's internal decode/encode tables (must be called once)
+    // Initialize XED's internal decode/encode tables (must be called once)
     xed_tables_init();
     xed_agen_register_callback(xed_register_callback, xed_segment_callback);
 
-    // 2. Configure the target machine architecture (64-bit mode, 64-bit address width)
+    // Configure the target machine architecture (64-bit mode, 64-bit address width)
     xed_state_t dstate;
     xed_state_zero(&dstate);
     xed_state_set_machine_mode(&dstate, XED_MACHINE_MODE_LONG_64);

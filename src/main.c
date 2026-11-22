@@ -17,18 +17,6 @@ void dump_hex(uint8_t *buf, int len)
     printf("\n");
 }
 
-static void print_xed_answer(const xed_answer_t *answer, uint64_t rax)
-{
-    if (answer->memop_count == 0)
-    {
-        printf("no memory operand; RAX=%#" PRIx64 "\n", rax);
-        return;
-    }
-
-    for (unsigned int i = 0; i < answer->memop_count; i++)
-        printf("xed_memop%u = %#" PRIx64 "\n", i, answer->memop_addresses[i]);
-}
-
 int main(int argc, char *argv[])
 {
     if (argc != 3)
@@ -41,6 +29,7 @@ int main(int argc, char *argv[])
     uint64_t instruction;
     uint8_t instruction_bytes[15] = {0};
 
+    // Check if parsing was error free, the return value of parse_hex is a status code
     if (parse_hex(argv[1], &offset) != 0 || parse_hex(argv[2], &instruction) != 0)
     {
         return 1;
@@ -48,18 +37,13 @@ int main(int argc, char *argv[])
 
     memcpy(instruction_bytes, &instruction, sizeof(instruction));
 
-    if (offset > SIZE_MAX)
-    {
-        fprintf(stderr, "Error: Offset is too large for this platform.\n");
-        return 1;
-    }
-
     // Create sgx context
     sgx_cpu_context_t sgx;
     memset(&sgx, 0x0, sizeof(sgx)); // set all registers to 0
 
     // set location of next instruction (Regsiter Instruction Pointer)
     char *instruction_address = put_instruction_on_page((size_t)offset, instruction_bytes, sizeof(instruction_bytes));
+
     if (instruction_address == NULL)
     {
         fprintf(stderr, "Error: Instruction does not fit on the page.\n");
@@ -86,7 +70,7 @@ int main(int argc, char *argv[])
     xed_answer.memop_addresses[1] = 0;
 
     int xed_rv = disassemble_with_xed(instruction_bytes, sizeof(instruction), (uint64_t)instruction_address, &context, &xed_answer);
-    printf("xed_rv = %d\n", xed_rv);
+
     if (xed_rv != 0)
     {
         fprintf(stderr, "Error: XED disassembly failed.\n");
