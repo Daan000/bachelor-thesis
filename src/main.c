@@ -2,6 +2,7 @@
 #include "xed.h"
 #include "parser.h"
 #include "placement.h"
+#include "register_fill.h"
 
 #include <string.h>
 #include <stdint.h>
@@ -53,15 +54,16 @@ int main(int argc, char *argv[])
     
     // Create sgx context
     sgx_cpu_context_t sgx;
+    fill_registers(&sgx, (uint64_t)instruction_address);
     
+    // Copy the registers for later use by XED
+    xed_context context;
+    copy_registers(&sgx, &context);
 
     uint64_t ans = 0;
     int rv = ct_decode(&sgx, &ans);
     printf("\n");
     printf("rv = %d; ans=%#" PRIx64 "\n", rv, ans);
-
-    xed_context context;
-    copy_registers(&sgx, &context);
 
     xed_answer_t xed_answer;
     memset(&xed_answer, 0x0, sizeof(xed_answer_t));

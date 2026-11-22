@@ -1,5 +1,6 @@
 #include "ctd/ctd.h"
 #include "xed.h"
+#include <string.h>
 
 
 /*
@@ -10,7 +11,7 @@ De functie cleared eerst alle registers,
 en vult ze dan met voorgeprogrammeerde waarden
 die bepaald werden door een python scriptje.
 */
-int fill_registers(sgx_cpu_context_t *sgx){
+int fill_registers(sgx_cpu_context_t *sgx, uint64_t instruction_address){
     if (sgx == NULL) return -1;
     
     memset(&sgx, 0x0, sizeof(sgx)); // set all registers to 0
@@ -18,6 +19,8 @@ int fill_registers(sgx_cpu_context_t *sgx){
     // now we will set all registers to predefined values
     // e.g. sgx.rax = 0xdeadbeefcafebabe;
     /* <--FILL-PLACEHOLDER--> */
+
+    sgx->rip = instruction_address;
     return 0;
 }
 
@@ -27,5 +30,6 @@ Copy the values of the registers from sgx -> to xed_context.
 int copy_registers(sgx_cpu_context_t *sgx, xed_context context){
     // Copy the registers
     /* <--COPY-PLACEHOLDER--> */
+
     return 0;
 }

@@ -3,7 +3,8 @@ from registers import XED_REGISTERS
 
 def generate_registers() -> dict:
     """
-    TODO: docs
+    Generate the *values* for the XED registers.
+    e.g. {"RAX": 0x20, ...}
     """
     output = {}
     for i, register_name in enumerate(XED_REGISTERS):
@@ -13,18 +14,18 @@ def generate_registers() -> dict:
 
 def compile_for_sgx_registers(registers: dict) -> dict:
     """
-    TODO: docs
+    Compile the values for the registers ({"RAX": 0x20, ...}) to C code ("sgx.RAX = 0x20;")
     """
-    output = ""
+    lines = []
     for register_name, value in registers.items():
-        output += f"\tsgx.{register_name} = 0x{value};\n"
-    return output
+        lines.append(f"\tsgx->{register_name} = 0x{value};")
+    return '\n'.join(lines)
 
 def generate_copy_code() -> str:
-    output = ""
+    lines = []
     for register_name in XED_REGISTERS:
-        output += f"\tcontext.{register_name} = sgx.{register_name};\n"
-    return output
+        lines.append( f"\tcontext->{register_name} = sgx->{register_name};" )
+    return '\n'.join(lines)
 
 if __name__ == "__main__":
     with open("template.c" , 'r') as f:
@@ -36,5 +37,5 @@ if __name__ == "__main__":
     
     output = output.replace("    /* <--COPY-PLACEHOLDER--> */", generate_copy_code())
     
-    with open("output.c" , 'w+') as f:
+    with open("../register_fill.c" , 'w+') as f:
         f.write(output)
