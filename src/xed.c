@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include "xed/xed-interface.h"
 
+// Not relevant for us (I think; Simon)
 void print_xed_answer(const xed_answer_t *answer, uint64_t rax)
 {
     if (answer->memop_count == 0)
@@ -12,9 +13,9 @@ void print_xed_answer(const xed_answer_t *answer, uint64_t rax)
         return;
     }
 
-    // maximum 2 iteraties
+    // maximum 2 iteraties (anders zou `disassemble_with_xed` falen)
     for (unsigned int i = 0; i < answer->memop_count; i++)
-        printf("xed_memop%u = %#" PRIx64 "\n", i, answer->memop_addresses[i]);
+        printf("xed_memop%u = %#" PRIx64 "\n", i, answer->memop_addresses[i]); // e.g. `xed_memop0 = 0x123456789abcdef`
 }
 
 // Provides xed the register context
@@ -36,7 +37,7 @@ static xed_uint64_t xed_register_callback(xed_reg_enum_t reg, void *context, xed
     }
 }
 
-// Not relevant for us (I think)
+// Not relevant for us (I think; Daan)
 static xed_uint64_t xed_segment_callback(xed_reg_enum_t reg, void *context, xed_bool_t *error)
 {
     (void)reg;
@@ -83,7 +84,8 @@ int disassemble_with_xed(const uint8_t *binary_code, size_t code_len, uint64_t r
 
     if (ok)
     {
-        printf("xed = %s\n", disasm_buf);
+        // print the disassembled instruction (e.g. `add byte ptr [r8], al`)
+        printf("xed = %s\n", disasm_buf); 
     }
     else
     {
@@ -100,6 +102,8 @@ int disassemble_with_xed(const uint8_t *binary_code, size_t code_len, uint64_t r
         return 1;
     }
 
+    // for all memory operands, store the address
+    // e.g. `xed_memop0 = 0x123456789abcdef`
     for (unsigned int memop = 0; memop < memops; memop++)
     {
         xed_uint64_t agen_address = 0;

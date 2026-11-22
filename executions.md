@@ -10,3 +10,7 @@ Daarom interessante tests:
 ```
 
 Returnt de waarde in rax (want het is geen mem access).
+
+Een voorbeeld waarbij het register `r8` opgevraagd wordt, is volgende voorbeeld: ```./main 0x20 0x494f```.
+
+Een voorbeeld voor `rcx`: `./main 0x20 0x49ff`.
