@@ -42,8 +42,12 @@ int main(int argc, char *argv[])
     memset(&sgx, 0x0, sizeof(sgx)); // set all registers to 0
 
     // set location of next instruction (Regsiter Instruction Pointer)
-    char *instruction_address = put_instruction_on_page((size_t)offset, instruction_bytes, sizeof(instruction_bytes));
-
+    char *instruction_address = put_instruction_on_page(
+        (size_t)offset,
+        instruction_bytes,
+        sizeof(instruction_bytes)
+    );
+    
     if (instruction_address == NULL)
     {
         fprintf(stderr, "Error: Instruction does not fit on the page.\n");
