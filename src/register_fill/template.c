@@ -14,7 +14,7 @@ die bepaald werden door een python scriptje.
 int fill_registers(sgx_cpu_context_t *sgx, uint64_t instruction_address){
     if (sgx == NULL) return -1;
     
-    memset(&sgx, 0x0, sizeof(sgx)); // set all registers to 0
+    memset(sgx, 0x0, sizeof(*sgx)); // set all registers to 0
     
     // now we will set all registers to predefined values
     // e.g. sgx.rax = 0xdeadbeefcafebabe;
@@ -27,7 +27,7 @@ int fill_registers(sgx_cpu_context_t *sgx, uint64_t instruction_address){
 /*
 Copy the values of the registers from sgx -> to xed_context.
 */
-int copy_registers(sgx_cpu_context_t *sgx, xed_context context){
+int copy_registers(sgx_cpu_context_t *sgx, xed_context *context){
     // Copy the registers
     /* <--COPY-PLACEHOLDER--> */
 
