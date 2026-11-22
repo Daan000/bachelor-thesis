@@ -18,24 +18,24 @@ int fill_registers(sgx_cpu_context_t *sgx, uint64_t instruction_address){
     
     // now we will set all registers to predefined values
     // e.g. sgx.rax = 0xdeadbeefcafebabe;
-	sgx->rax = 0x0;
-	sgx->rcx = 0x1;
-	sgx->rdx = 0x2;
-	sgx->rbx = 0x3;
-	sgx->rsp = 0x4;
-	sgx->rbp = 0x5;
-	sgx->rsi = 0x6;
-	sgx->rdi = 0x7;
-	sgx->r8 = 0x8;
-	sgx->r9 = 0x9;
-	sgx->r10 = 0x10;
-	sgx->r11 = 0x11;
-	sgx->r12 = 0x12;
-	sgx->r13 = 0x13;
-	sgx->r14 = 0x14;
-	sgx->r15 = 0x15;
-	sgx->rflags = 0x16;
-	sgx->rip = 0x17;
+	sgx->rax = 0x1;
+	sgx->rcx = 0x2;
+	sgx->rdx = 0x3;
+	sgx->rbx = 0x4;
+	sgx->rsp = 0x5;
+	sgx->rbp = 0x6;
+	sgx->rsi = 0x7;
+	sgx->rdi = 0x8;
+	sgx->r8 = 0x9;
+	sgx->r9 = 0x10;
+	sgx->r10 = 0x11;
+	sgx->r11 = 0x12;
+	sgx->r12 = 0x13;
+	sgx->r13 = 0x14;
+	sgx->r14 = 0x15;
+	sgx->r15 = 0x16;
+	sgx->rflags = 0x17;
+	sgx->rip = 0x18;
 
     sgx->rip = instruction_address;
     return 0;

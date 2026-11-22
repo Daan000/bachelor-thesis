@@ -8,7 +8,7 @@ def generate_registers() -> dict:
     """
     output = {}
     for i, register_name in enumerate(XED_REGISTERS):
-        value = i # TODO; replace with an interesting binary generator (open for discussion)
+        value = i+1 # TODO; replace with an interesting binary generator (open for discussion)
         output.update({register_name: value})
     return output
 
