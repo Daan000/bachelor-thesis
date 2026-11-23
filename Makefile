@@ -1,7 +1,6 @@
-CFLAGS = -mavx2 -O3 -masm=intel -g -DCTD_UNIT_TEST
+CFLAGS = -mavx2 -O2 -masm=intel -g -DCTD_UNIT_TEST
 AFL_CC = ~/AFLplusplus/afl-gcc-fast
-
-# CXX=/path/to/afl-c++ ./configure --disable-shared
+# AFL_USE_ASAN=0 # see readme Marco
 
 XED_DIR = $(HOME)/.local/xed-install
 XED_CFLAGS = -I$(XED_DIR)/include
