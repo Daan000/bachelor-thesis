@@ -2,6 +2,7 @@
 #include "xed.h"
 #include "parser.h"
 #include "placement.h"
+#include "register_fill.h"
 
 #include <string.h>
 #include <stdint.h>
@@ -28,9 +29,9 @@ int main(int argc, char *argv[])
     }
 
     input_context input;
-    int rv = read_input(&input);
+    int input_rv = read_input(&input);
 
-    if (rv != 0){
+    if (input_rv != 0){
         fprintf(stderr, "Parsing the input (stdio) was not succesfull.\n");
         return 1;
     }
@@ -51,20 +52,19 @@ int main(int argc, char *argv[])
         fprintf(stderr, "Error: Instruction does not fit on the page.\n");
         return 1;
     }
-
-    sgx.rip = (uint64_t)instruction_address;
-    sgx.rax = 0xdeadbeefcafebabe;
-    sgx.r8 = 0x0123456789abcdef;
+    
+    // Create sgx context
+    sgx_cpu_context_t sgx;
+    fill_registers(&sgx, (uint64_t)instruction_address);
+    
+    // Copy the registers for later use by XED
+    xed_context context;
+    copy_registers(&sgx, &context);
 
     uint64_t ans = 0;
     int ct_rv = ct_decode(&sgx, &ans);
     printf("\n");
     printf("rv = %d; ans=%#" PRIx64 "\n", ct_rv, ans);
-
-    xed_context context;
-    context.rax = sgx.rax;
-    context.r8 = sgx.r8;
-    context.rip = sgx.rip;
 
     xed_answer_t xed_answer;
     memset(&xed_answer, 0, sizeof(xed_answer));

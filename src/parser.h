@@ -11,4 +11,7 @@ typedef struct
 
 int read_input(input_context *value);
 
+int parse_hex(const char *input, uint64_t *value);
+int parse_dec(const char *input, uint64_t *value);
+
 #endif

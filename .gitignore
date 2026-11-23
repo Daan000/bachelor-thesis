@@ -13,4 +13,6 @@
 input/
 output/
 
+**/__pycache__/
+
 xed-workspace

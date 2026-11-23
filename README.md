@@ -49,10 +49,10 @@ make clean all CTD_FIX=1
 ## Run
 
 `main` runs the CTD decoder and then disassembles the same instruction with
-XED:
+XED. The offset is decimal and the instruction is hexadecimal:
 
 ```bash
-./main 0x0 0x483c
+./main 0 0x483c
 ```
 
 The output includes the CTD result and the XED disassembly, for example:
