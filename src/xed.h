@@ -33,8 +33,11 @@ typedef struct
                                  // de array heeft lengte 2 doordat dat het maximum aan memory operands is
 } xed_answer_t;
 
+
 int disassemble_with_xed(const uint8_t *binary_code, size_t code_len, uint64_t runtime_addr,
-                         const xed_context *context, xed_answer_t *answer);
+    const xed_context *context, xed_answer_t *answer);
+    
+int compare_xed_ctd(xed_answer_t *xed_answer, uint64_t *ctd_answer, xed_context *context);
 
 void print_xed_answer(const xed_answer_t *answer, uint64_t rax);
 

@@ -1,8 +1,10 @@
 #include "parser.h"
 
 #include <errno.h>
-#include <stdint.h>
+#include <string.h>
 #include <stdio.h>
+#include <stdint.h>
+#include <unistd.h>
 #include <stdlib.h>
 
 // Parses a hex string (e.g., "488b0425efbeadde", "0x488b...", or "48 8b 04...")
@@ -70,6 +72,21 @@ int parse_hex_bytes(const char *input, uint8_t *out_bytes, size_t max_bytes, siz
     }
 
     *out_len = count;
+  
+  return 0;
+}
+
+int read_input_from_buf(input_context *input, const uint8_t *buf, size_t len)
+{
+    if (input == NULL || buf == NULL || len == 0) {
+        return -1;
+    }
+
+    memset(input, 0, sizeof(*input));
+
+    size_t copy_len = len < sizeof(*input) ? len : sizeof(*input);
+    memcpy(input, buf, copy_len);
+
     return 0;
 }
 
