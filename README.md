@@ -1,5 +1,20 @@
 # Bachelor thesis
 
+## Open vragen
+
+1. Is het goed om XED mee te fuzzen
+    ```
+    PRO: als we ook coverage guided op XED werken, dan zullen we special cases beter bestuderen.
+    Inderdaad, voor special cases zal XED aparte branches hebben, die misschien
+    een bug veroorzaken in de CTD.
+    CONTRA: kan heel tijd-intensief zijn om dit mee te fuzzen
+    ```
+2. Moeten we de `CPU_context` mee muteren?
+    ```
+    PRO: Heel misschien is er ergens een super uitzonderlijke edge case... 
+    CONTRA: Kan de fuzzing-focus weghalen van het programma.
+    ```
+
 ## Requirements
 
 - Linux (or WSL)
