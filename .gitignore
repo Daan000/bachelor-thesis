@@ -9,4 +9,6 @@
 
 *.pyc
 
+**/__pycache__/
+
 xed-workspace
