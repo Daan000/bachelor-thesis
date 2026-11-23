@@ -33,25 +33,14 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    // --- ONE-TIME INITIALIZATION BEFORE FORKSERVER ---
-    // If XED or page allocation can be initialized once, do it here before __AFL_INIT()
-
 #ifdef __AFL_HAVE_MANUAL_CONTROL
     __AFL_INIT();
 #endif
 
-#ifdef __AFL_FUZZ_TESTCASE_LEN
     unsigned char *fuzz_buf = __AFL_FUZZ_TESTCASE_BUF;
     while (__AFL_LOOP(10000)) 
     {
         int fuzz_len = __AFL_FUZZ_TESTCASE_LEN;
-#else
-    // Fallback for standalone debugging / reproducing a crash file via stdin
-    unsigned char fuzz_buf[4096];
-    int fuzz_len = (int)read(STDIN_FILENO, fuzz_buf, sizeof(fuzz_buf));
-    if (fuzz_len > 0)
-    {
-#endif
         input_context input;
         memset(&input, 0, sizeof(input));
 
@@ -62,8 +51,8 @@ int main(int argc, char *argv[])
         }
 
         // Set location of next instruction (Register Instruction Pointer)
-        // IMPORTANT: Ensure put_instruction_on_page reuses a static/pre-allocated page
-        // rather than calling mmap() every iteration without munmap().
+        // put_instruction_on_page reuses a static/pre-allocated page 
+        // (for performance, compared to repeated mmap)
         char *instruction_address = put_instruction_on_page(
             (size_t)input.offset,
             input.instruction_bytes,
@@ -89,8 +78,6 @@ int main(int argc, char *argv[])
 
 #ifdef DEBUG
         printf("\nrv = %d; ans=%#" PRIx64 "\n", ct_rv, ctd_ans);
-#else
-        (void)ct_rv;
 #endif
 
         xed_answer_t xed_answer;
