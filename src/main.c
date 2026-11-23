@@ -36,10 +36,6 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    // Create sgx context
-    sgx_cpu_context_t sgx;
-    memset(&sgx, 0x0, sizeof(sgx)); // set all registers to 0
-
     // set location of next instruction (Regsiter Instruction Pointer)
     char *instruction_address = put_instruction_on_page(
         (size_t)input.offset,

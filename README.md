@@ -65,25 +65,19 @@ xed_rv = 0
 
 ## Fuzz
 
-Compile with afl using
-```
-make main
-```
-
-
-Start an initial fuzzing corpus with the following command:
-
+Fuzzen kan heel gemaklijk met
 ```bash
-printf '\x90\xc3' > input/initial_corpus.bin
+make fuzz
 ```
 
-Then run the fuzzer, 
-
-```bash
-afl-fuzz -T "Daan & Simon" -o output -i input -G 16 ./main
+Achter de schermen gebeurd er dan het volgende:
+``` bash
+make main #Compile with afl using
+mkdir input
+printf '\x90\xc3' > input/initial_corpus.bin # Start an initial fuzzing corpus
+afl-fuzz -T "Daan & Simon" -o output -i input -G 16 ./main # Then run the fuzzer, 
+# De flag `-G` bepaalt het maximum aantal bytes.
 ```
-
-De flag `-G` bepaalt het maximum aantal bytes.
 
 ## Clean
 
