@@ -2,6 +2,7 @@
 #include "xed.h"
 #include "parser.h"
 #include "placement.h"
+#include "register_fill.h"
 
 #include <string.h>
 #include <stdint.h>
@@ -37,10 +38,7 @@ int main(int argc, char *argv[])
 
     memcpy(instruction_bytes, &instruction, sizeof(instruction));
 
-    // Create sgx context
-    sgx_cpu_context_t sgx;
-    memset(&sgx, 0x0, sizeof(sgx)); // set all registers to 0
-
+    
     // set location of next instruction (Regsiter Instruction Pointer)
     char *instruction_address = put_instruction_on_page(
         (size_t)offset,
@@ -53,25 +51,22 @@ int main(int argc, char *argv[])
         fprintf(stderr, "Error: Instruction does not fit on the page.\n");
         return 1;
     }
-
-    sgx.rip = (uint64_t)instruction_address;
-    sgx.rax = 0xdeadbeefcafebabe;
-    sgx.r8 = 0x0123456789abcdef;
+    
+    // Create sgx context
+    sgx_cpu_context_t sgx;
+    fill_registers(&sgx, (uint64_t)instruction_address);
+    
+    // Copy the registers for later use by XED
+    xed_context context;
+    copy_registers(&sgx, &context);
 
     uint64_t ans = 0;
     int rv = ct_decode(&sgx, &ans);
     printf("\n");
     printf("rv = %d; ans=%#" PRIx64 "\n", rv, ans);
 
-    xed_context context;
-    context.rax = sgx.rax;
-    context.r8 = sgx.r8;
-    context.rip = sgx.rip;
-
     xed_answer_t xed_answer;
-    xed_answer.memop_count = 0;
-    xed_answer.memop_addresses[0] = 0;
-    xed_answer.memop_addresses[1] = 0;
+    memset(&xed_answer, 0x0, sizeof(xed_answer_t));
 
     int xed_rv = disassemble_with_xed(instruction_bytes, sizeof(instruction), (uint64_t)instruction_address, &context, &xed_answer);
 
