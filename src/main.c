@@ -19,23 +19,21 @@ void dump_hex(uint8_t *buf, int len)
 
 int main(int argc, char *argv[])
 {
-    if (argc != 3)
+    // AFL++ only fuzzes one argument (!)
+    // which is a binary file in our case
+    if (argc != 1) 
     {
-        printf("Usage: %s <offset> <instruction>\n", argv[0]);
+        printf("No additional arguments are allowed to %s.\n", argv[0]);
         return 1;
     }
 
-    uint64_t offset;
-    uint64_t instruction;
-    uint8_t instruction_bytes[15] = {0};
+    input_context input;
+    int rv = read_input(&input);
 
-    // Check if parsing was error free, the return value of parse_hex is a status code
-    if (parse_hex(argv[1], &offset) != 0 || parse_hex(argv[2], &instruction) != 0)
-    {
+    if (rv != 0){
+        fprintf(stderr, "Parsing the input (stdio) was not succesfull.\n");
         return 1;
     }
-
-    memcpy(instruction_bytes, &instruction, sizeof(instruction));
 
     // Create sgx context
     sgx_cpu_context_t sgx;
@@ -43,9 +41,9 @@ int main(int argc, char *argv[])
 
     // set location of next instruction (Regsiter Instruction Pointer)
     char *instruction_address = put_instruction_on_page(
-        (size_t)offset,
-        instruction_bytes,
-        sizeof(instruction_bytes)
+        (size_t)input.offset,
+        input.instruction_bytes,
+        sizeof(input.instruction_bytes)
     );
     
     if (instruction_address == NULL)
@@ -59,9 +57,9 @@ int main(int argc, char *argv[])
     sgx.r8 = 0x0123456789abcdef;
 
     uint64_t ans = 0;
-    int rv = ct_decode(&sgx, &ans);
+    int ct_rv = ct_decode(&sgx, &ans);
     printf("\n");
-    printf("rv = %d; ans=%#" PRIx64 "\n", rv, ans);
+    printf("rv = %d; ans=%#" PRIx64 "\n", ct_rv, ans);
 
     xed_context context;
     context.rax = sgx.rax;
@@ -69,11 +67,9 @@ int main(int argc, char *argv[])
     context.rip = sgx.rip;
 
     xed_answer_t xed_answer;
-    xed_answer.memop_count = 0;
-    xed_answer.memop_addresses[0] = 0;
-    xed_answer.memop_addresses[1] = 0;
+    memset(&xed_answer, 0, sizeof(xed_answer));
 
-    int xed_rv = disassemble_with_xed(instruction_bytes, sizeof(instruction), (uint64_t)instruction_address, &context, &xed_answer);
+    int xed_rv = disassemble_with_xed(input.instruction_bytes, sizeof(input.instruction_bytes), (uint64_t)instruction_address, &context, &xed_answer);
 
     if (xed_rv != 0)
     {
@@ -82,6 +78,9 @@ int main(int argc, char *argv[])
     }
 
     print_xed_answer(&xed_answer, context.rax);
+
+    // int comp_rv = compare_xed_ctd(...);
+    // return comp_rv;
 
     return 0;
 }

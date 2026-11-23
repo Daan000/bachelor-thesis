@@ -70,17 +70,20 @@ Compile with afl using
 make main
 ```
 
-Then run the fuzzer, 
-
-```bash
-afl-fuzz -o output -i input ./main
-```
 
 Start an initial fuzzing corpus with the following command:
 
 ```bash
-printf '\x90\xc3' > input/seed_nop_ret.bin
+printf '\x90\xc3' > input/initial_corpus.bin
 ```
+
+Then run the fuzzer, 
+
+```bash
+afl-fuzz -T "Daan & Simon" -o output -i input -G 16 ./main
+```
+
+De flag `-G` bepaalt het maximum aantal bytes.
 
 ## Clean
 
