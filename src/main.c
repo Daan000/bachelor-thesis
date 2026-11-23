@@ -21,7 +21,7 @@ int main(int argc, char *argv[])
 {
     if (argc != 3)
     {
-        printf("Usage: %s <offset> <instruction>\n", argv[0]);
+        printf("Usage: %s <decimal offset> <hex instruction>\n", argv[0]);
         return 1;
     }
 
@@ -29,8 +29,8 @@ int main(int argc, char *argv[])
     uint64_t instruction;
     uint8_t instruction_bytes[15] = {0};
 
-    // Check if parsing was error free, the return value of parse_hex is a status code
-    if (parse_hex(argv[1], &offset) != 0 || parse_hex(argv[2], &instruction) != 0)
+    // The offset is decimal, the instruction bytes are hexadecimal
+    if (parse_dec(argv[1], &offset) != 0 || parse_hex(argv[2], &instruction) != 0)
     {
         return 1;
     }
