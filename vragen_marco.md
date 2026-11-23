@@ -14,3 +14,5 @@
 3. Wat is de planning voor het komende semester?
 
 -> lijkt me interessant om een soort kalender in de presentatie te zetten
+
+4. Get started met fuzzing. AFL++ / zelf...
