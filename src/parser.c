@@ -7,12 +7,17 @@
 #include <unistd.h>
 #include <stdlib.h>
 
-int read_input(input_context *value)
-{
-    memset(value, 0, sizeof(*value));
 
-    ssize_t len = read(STDIN_FILENO, value, sizeof(value));
-    if (len <= 0) return -1;
+int read_input_from_buf(input_context *input, const uint8_t *buf, size_t len)
+{
+    if (input == NULL || buf == NULL || len == 0) {
+        return -1;
+    }
+
+    memset(input, 0, sizeof(*input));
+
+    size_t copy_len = len < sizeof(*input) ? len : sizeof(*input);
+    memcpy(input, buf, copy_len);
 
     return 0;
 }

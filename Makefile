@@ -14,7 +14,7 @@ endif
 all: clean fuzz
 
 fuzz: main
-	afl-fuzz -T "Daan & Simon" -o output -i input -G 16 ./main
+	afl-fuzz -T "Daan & Simon" -o output -i input -G 32 -M main ./main
 
 main: src/main.c src/xed.c src/xed.h src/ctd/ctd.c src/parser.c src/placement.c src/ctd/asm.S src/register_fill.c
 	$(AFL_CC) $(CFLAGS) $(XED_CFLAGS) src/ctd/ctd.c src/main.c src/xed.c src/parser.c src/placement.c src/ctd/asm.S src/register_fill.c -o $@ $(XED_LDFLAGS) $(XED_LIBS)
