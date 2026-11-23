@@ -9,4 +9,8 @@
 
 *.pyc
 
+# AFL++ directories
+input/
+output/
+
 xed-workspace

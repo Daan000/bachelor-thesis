@@ -1,6 +1,6 @@
 CFLAGS = -mavx2 -O3 -masm=intel -g -DCTD_UNIT_TEST
+AFL_CC = ~/AFLplusplus/afl-gcc-fast
 
-CC=~/AFLplusplus/afl-cc
 # CXX=/path/to/afl-c++ ./configure --disable-shared
 
 XED_DIR = $(HOME)/.local/xed-install
@@ -15,7 +15,7 @@ endif
 all: main
 
 main: src/main.c src/xed.c src/xed.h src/ctd/ctd.c src/parser.c src/placement.c src/ctd/asm.S
-	$(CC) $(CFLAGS) $(XED_CFLAGS) src/ctd/ctd.c src/main.c src/xed.c src/parser.c src/placement.c src/ctd/asm.S -o $@ $(XED_LDFLAGS) $(XED_LIBS)
+	$(AFL_CC) $(CFLAGS) $(XED_CFLAGS) src/ctd/ctd.c src/main.c src/xed.c src/parser.c src/placement.c src/ctd/asm.S -o $@ $(XED_LDFLAGS) $(XED_LIBS)
 
 clean:
 	rm -f main

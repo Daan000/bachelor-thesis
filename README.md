@@ -63,6 +63,25 @@ xed = cmp al, 0x48
 xed_rv = 0
 ```
 
+## Fuzz
+
+Compile with afl using
+```
+make main
+```
+
+Then run the fuzzer, 
+
+```bash
+afl-fuzz -o output -i input ./main
+```
+
+Start an initial fuzzing corpus with the following command:
+
+```bash
+printf '\x90\xc3' > input/seed_nop_ret.bin
+```
+
 ## Clean
 
 ```bash
