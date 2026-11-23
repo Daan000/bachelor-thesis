@@ -8,10 +8,13 @@ ifeq ($(CTD_FIX),1)
     CFLAGS += -DCTD_FIX
 endif
 
-all: main
+all: main cli
 
 main: src/main.c src/xed.c src/xed.h src/ctd/ctd.c src/parser.c src/placement.c src/ctd/asm.S src/register_fill.c
-	gcc $(CFLAGS) $(XED_CFLAGS) src/ctd/ctd.c src/main.c src/xed.c src/parser.c src/placement.c src/ctd/asm.S src/register_fill.c -o $@ $(XED_LDFLAGS) $(XED_LIBS)
+# 	gcc $(CFLAGS) $(XED_CFLAGS) src/ctd/ctd.c src/main.c src/xed.c src/parser.c src/placement.c src/ctd/asm.S src/register_fill.c -o $@ $(XED_LDFLAGS) $(XED_LIBS)
+
+cli: src/cli.c src/xed.c src/xed.h src/ctd/ctd.c src/parser.c src/placement.c src/ctd/asm.S src/register_fill.c
+	gcc $(CFLAGS) $(XED_CFLAGS) src/ctd/ctd.c src/cli.c src/xed.c src/parser.c src/placement.c src/ctd/asm.S src/register_fill.c -o cli $(XED_LDFLAGS) $(XED_LIBS)
 
 clean:
-	rm -f main
+	rm -f cli

@@ -39,7 +39,8 @@ int main() {
     // Note: In 64-bit mode, a 32-bit displacement without a base register is
     // sign-extended unless an address-size override or SIB byte is used.
     // XED handles the ModRM/SIB encoding automatically.
-    xed_encoder_request_set_memory_displacement(&req, 0xdeadbeef, 4); // 4 bytes = 32 bits
+    xed_encoder_request_set_memory_displacement(&req, 0xdeadbeef, 8); // 4 bytes = 32 bits
+    // 8 = 64 bits
 
     // 6. Encode the instruction
     uint8_t itext[XED_MAX_INSTRUCTION_BYTES];
