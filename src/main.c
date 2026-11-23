@@ -11,6 +11,7 @@
 
 int g_cpu_feature_indicator = 0x0;
 
+
 void dump_hex(uint8_t *buf, int len)
 {
     for (int i = 0; i < len; i++)
@@ -57,10 +58,10 @@ int main(int argc, char *argv[])
     xed_context context;
     copy_registers(&sgx, &context);
 
-    uint64_t ans = 0;
-    int ct_rv = ct_decode(&sgx, &ans);
+    uint64_t ctd_ans = 0;
+    int ct_rv = ct_decode(&sgx, &ctd_ans);
     printf("\n");
-    printf("rv = %d; ans=%#" PRIx64 "\n", ct_rv, ans);
+    printf("rv = %d; ans=%#" PRIx64 "\n", ct_rv, ctd_ans);
 
     xed_answer_t xed_answer;
     memset(&xed_answer, 0, sizeof(xed_answer));
@@ -75,8 +76,8 @@ int main(int argc, char *argv[])
 
     print_xed_answer(&xed_answer, context.rax);
 
-    // int comp_rv = compare_xed_ctd(...);
-    // return comp_rv;
+    int comp_rv = compare_xed_ctd(&xed_answer, &ctd_ans, &context);
+    return comp_rv;
 
     return 0;
 }
