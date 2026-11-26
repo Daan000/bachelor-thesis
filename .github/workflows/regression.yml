@@ -1,0 +1,35 @@
+name: Regression tests
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  regression:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes build-essential git python3
+
+      - name: Build Intel XED
+        run: |
+          mkdir -p "$HOME/xed-workspace"
+          git clone --depth 1 https://github.com/intelxed/xed.git "$HOME/xed-workspace/xed"
+          git clone --depth 1 https://github.com/intelxed/mbuild.git "$HOME/xed-workspace/mbuild"
+          cd "$HOME/xed-workspace/xed"
+          python3 mfile.py --share --install-dir="$HOME/.local/xed-install" install
+
+      - name: Run CLI regression tests
+        run: make test-regression

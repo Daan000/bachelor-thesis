@@ -15,11 +15,14 @@ endif
 all: clean main fuzz
 
 xed-compile:
-	g++ -O2 xed_compiler.cpp $XED_CFLAGS $XED_LDFLAGS -lxed -o xed_compiler
+	g++ -O2 scripts/xed_compiler/xed_compiler.cpp $(XED_CFLAGS) $(XED_LDFLAGS) -lxed -o xed_compiler
 	./xed_compiler
 
 cli: src/cli.c src/xed.c src/xed.h src/ctd/ctd.c src/parser.c src/placement.c src/ctd/asm.S src/register_fill.c
 	gcc $(CFLAGS) $(XED_CFLAGS) src/ctd/ctd.c src/cli.c src/xed.c src/parser.c src/placement.c src/ctd/asm.S src/register_fill.c -o cli $(XED_LDFLAGS) $(XED_LIBS)
+
+test-regression: cli
+	python3 -m unittest discover -s tests/regression -p "test_*.py" -v
 
 fuzz: main
 	@bash -c ' \
