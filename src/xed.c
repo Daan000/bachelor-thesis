@@ -4,25 +4,25 @@
 #include <stdio.h>
 #include "xed/xed-interface.h"
 
-// Used for debugging
-int compare_xed_ctd(xed_answer_t *xed_answer, uint64_t *ctd_answer, xed_context *context){
-    if (ctd_answer == NULL) return -1;
+// Compare the CTD result with the trusted XED result.
+// `ct_rv` is essential here: CTD's `addr` output is only meaningful when
+// the decoder actually found a memory access (rv != 0). For instructions
+// without a memory operand, `addr` is derived from the bytes following the
+// opcode and must not be compared against XED's RAX fallback.
+int compare_xed_ctd(xed_answer_t *xed_answer, uint64_t *ctd_answer, int ct_rv, xed_context *context){
+    if (xed_answer == NULL || ctd_answer == NULL || context == NULL) return -1;
 
-    uint64_t xed_register_value;
-    if (xed_answer->memop_count == 0)
-    {
-        // CTD should return the `RAX` register
-        xed_register_value = context->rax;
-    }
-    else
-    {
-        // XED found that there was a non-trivial memory access..
-        // Then CTD should do the same memory access
-        xed_register_value = xed_answer->memop_addresses[0];
-    }
+    int ctd_has_mem = (ct_rv != 0);
+    int xed_has_mem = (xed_answer->memop_count > 0);
 
-    // return if both sources return the same value
-    if (xed_register_value == *ctd_answer) return 0; // ALL OK.
+    // First the decoders must agree on whether there is a memory access at all.
+    if (ctd_has_mem != xed_has_mem) return -1;
+
+    // Neither decoder found a memory operand: there is no address to compare.
+    if (!ctd_has_mem) return 0;
+
+    // Both found one: XED is the trusted source for the effective address.
+    if (*ctd_answer == xed_answer->memop_addresses[0]) return 0; // ALL OK.
     return -1; // NOT OK, CTD was not equal to the trusted source XED
 }
 

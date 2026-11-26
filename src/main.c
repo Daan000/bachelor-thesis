@@ -99,7 +99,7 @@ int main(int argc, char *argv[])
         print_xed_answer(&xed_answer, context.rax);
 #endif
 
-        int comp_rv = compare_xed_ctd(&xed_answer, &ctd_ans, &context);
+        int comp_rv = compare_xed_ctd(&xed_answer, &ctd_ans, ct_rv, &context);
         if (comp_rv != 0) {
             // Force a crash so AFL++ records the mismatch and saves the testcase
             abort();
