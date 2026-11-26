@@ -58,8 +58,36 @@ static xed_uint64_t xed_register_callback(xed_reg_enum_t reg, void *context, xed
     {
     case XED_REG_RAX:
         return c->rax;
+    case XED_REG_RCX:
+        return c->rcx;
+    case XED_REG_RDX:
+        return c->rdx;
+    case XED_REG_RBX:
+        return c->rbx;
+    case XED_REG_RSP:
+        return c->rsp;
+    case XED_REG_RBP:
+        return c->rbp;
+    case XED_REG_RSI:
+        return c->rsi;
+    case XED_REG_RDI:
+        return c->rdi;
     case XED_REG_R8:
         return c->r8;
+    case XED_REG_R9:
+        return c->r9;
+    case XED_REG_R10:
+        return c->r10;
+    case XED_REG_R11:
+        return c->r11;
+    case XED_REG_R12:
+        return c->r12;
+    case XED_REG_R13:
+        return c->r13;
+    case XED_REG_R14:
+        return c->r14;
+    case XED_REG_R15:
+        return c->r15;
     case XED_REG_RIP:
         return c->rip;
     default:
