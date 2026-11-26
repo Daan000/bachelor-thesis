@@ -1,4 +1,4 @@
-from registers import XED_REGISTERS
+from scripts.register_fill.registers import XED_REGISTERS
 
 
 def generate_registers() -> dict:
@@ -28,7 +28,7 @@ def generate_copy_code() -> str:
     return '\n'.join(lines)
 
 if __name__ == "__main__":
-    with open("template.c" , 'r') as f:
+    with open("scripts/register_fill/template.c" , 'r') as f:
         template_code = f.read()
     
     registers: dict = generate_registers()
@@ -37,5 +37,5 @@ if __name__ == "__main__":
     
     output = output.replace("    /* <--COPY-PLACEHOLDER--> */", generate_copy_code())
     
-    with open("../register_fill.c" , 'w+') as f:
+    with open("src/register_fill.c" , 'w+') as f:
         f.write(output)

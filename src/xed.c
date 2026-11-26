@@ -4,18 +4,48 @@
 #include <stdio.h>
 #include "xed/xed-interface.h"
 
-// Not relevant for us (I think; Simon)
+// Used for debugging
+int compare_xed_ctd(xed_answer_t *xed_answer, uint64_t *ctd_answer, xed_context *context){
+    if (ctd_answer == NULL) return -1;
+
+    uint64_t xed_register_value;
+    if (xed_answer->memop_count == 0)
+    {
+        // CTD should return the `RAX` register
+        xed_register_value = context->rax;
+    }
+    else
+    {
+        // XED found that there was a non-trivial memory access..
+        // Then CTD should do the same memory access
+        xed_register_value = xed_answer->memop_addresses[0];
+    }
+
+    // return if both sources return the same value
+    if (xed_register_value == *ctd_answer) return 0; // ALL OK.
+    return -1; // NOT OK, CTD was not equal to the trusted source XED
+}
+
 void print_xed_answer(const xed_answer_t *answer, uint64_t rax)
 {
     if (answer->memop_count == 0)
     {
-        printf("no memory operand; RAX=%#" PRIx64 "\n", rax);
+        printf("[XED] no memory operand; RAX=%#" PRIx64 "\n", rax);
         return;
     }
 
     // maximum 2 iteraties (anders zou `disassemble_with_xed` falen)
     for (unsigned int i = 0; i < answer->memop_count; i++)
-        printf("xed_memop%u = %#" PRIx64 "\n", i, answer->memop_addresses[i]); // e.g. `xed_memop0 = 0x123456789abcdef`
+        printf("[XED] xed_memop%u = %#" PRIx64 "\n", i, answer->memop_addresses[i]); // e.g. `xed_memop0 = 0x123456789abcdef`
+}
+
+
+static xed_uint64_t xed_segment_callback(xed_reg_enum_t reg, void *context, xed_bool_t *error)
+{
+    (void)reg;
+    (void)context;
+    *error = 0;
+    return 0;
 }
 
 // Provides xed the register context
@@ -37,15 +67,6 @@ static xed_uint64_t xed_register_callback(xed_reg_enum_t reg, void *context, xed
     }
 }
 
-// Not relevant for us (I think; Daan)
-static xed_uint64_t xed_segment_callback(xed_reg_enum_t reg, void *context, xed_bool_t *error)
-{
-    (void)reg;
-    (void)context;
-    *error = 0;
-    return 0;
-}
-
 int disassemble_with_xed(const uint8_t *binary_code, size_t code_len, uint64_t runtime_addr,
                          const xed_context *context, xed_answer_t *answer)
 {
@@ -53,13 +74,12 @@ int disassemble_with_xed(const uint8_t *binary_code, size_t code_len, uint64_t r
 
     // Initialize XED's internal decode/encode tables (must be called once)
     xed_tables_init();
-    xed_agen_register_callback(xed_register_callback, xed_segment_callback);
-
     // Configure the target machine architecture (64-bit mode, 64-bit address width)
     xed_state_t dstate;
     xed_state_zero(&dstate);
     xed_state_set_machine_mode(&dstate, XED_MACHINE_MODE_LONG_64);
     xed_state_set_stack_address_width(&dstate, XED_ADDRESS_WIDTH_64b);
+    xed_agen_register_callback(xed_register_callback, xed_segment_callback);
 
     char disasm_buf[128];
 
@@ -85,7 +105,7 @@ int disassemble_with_xed(const uint8_t *binary_code, size_t code_len, uint64_t r
     if (ok)
     {
         // print the disassembled instruction (e.g. `add byte ptr [r8], al`)
-        printf("xed = %s\n", disasm_buf); 
+        printf("[XED] i = %s\n", disasm_buf); 
     }
     else
     {
