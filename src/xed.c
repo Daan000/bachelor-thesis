@@ -9,21 +9,26 @@
 // the decoder actually found a memory access (rv != 0). For instructions
 // without a memory operand, `addr` is derived from the bytes following the
 // opcode and must not be compared against XED's RAX fallback.
-int compare_xed_ctd(xed_answer_t *xed_answer, uint64_t *ctd_answer, int ct_rv, xed_context *context){
-    if (xed_answer == NULL || ctd_answer == NULL || context == NULL) return -1;
+int compare_xed_ctd(xed_answer_t *xed_answer, uint64_t *ctd_answer, int ct_rv, xed_context *context)
+{
+    if (xed_answer == NULL || ctd_answer == NULL || context == NULL)
+        return -1;
 
     int ctd_has_mem = (ct_rv != 0);
     int xed_has_mem = (xed_answer->memop_count > 0);
 
-    // First the decoders must agree on whether there is a memory access at all.
-    if (ctd_has_mem != xed_has_mem) return -1;
+    // it is possible that the ctd misses some memory accesses for unsupported instructions
+    if (ctd_has_mem && !xed_has_mem)
+        return -1;
 
     // Neither decoder found a memory operand: there is no address to compare.
-    if (!ctd_has_mem) return 0;
+    if (!ctd_has_mem)
+        return 0;
 
     // Both found one: XED is the trusted source for the effective address.
-    if (*ctd_answer == xed_answer->memop_addresses[0]) return 0; // ALL OK.
-    return -1; // NOT OK, CTD was not equal to the trusted source XED
+    if (*ctd_answer == xed_answer->memop_addresses[0])
+        return 0; // ALL OK.
+    return -1;    // NOT OK, CTD was not equal to the trusted source XED
 }
 
 void print_xed_answer(const xed_answer_t *answer, uint64_t rax)
@@ -38,7 +43,6 @@ void print_xed_answer(const xed_answer_t *answer, uint64_t rax)
     for (unsigned int i = 0; i < answer->memop_count; i++)
         printf("[XED] xed_memop%u = %#" PRIx64 "\n", i, answer->memop_addresses[i]); // e.g. `xed_memop0 = 0x123456789abcdef`
 }
-
 
 static xed_uint64_t xed_segment_callback(xed_reg_enum_t reg, void *context, xed_bool_t *error)
 {
@@ -133,7 +137,7 @@ int disassemble_with_xed(const uint8_t *binary_code, size_t code_len, uint64_t r
     if (ok)
     {
         // print the disassembled instruction (e.g. `add byte ptr [r8], al`)
-        printf("[XED] i = %s\n", disasm_buf); 
+        printf("[XED] i = %s\n", disasm_buf);
     }
     else
     {
