@@ -54,6 +54,7 @@ static xed_uint64_t xed_register_callback(xed_reg_enum_t reg, void *context, xed
     const xed_context *c = (const xed_context *)context;
     *error = c == NULL;
 
+    // FIXME: return all registers (not only these three)
     switch (xed_get_largest_enclosing_register(reg))
     {
     case XED_REG_RAX:
@@ -89,7 +90,7 @@ int disassemble_with_xed(const uint8_t *binary_code, size_t code_len, uint64_t r
     xed_error_enum_t err = xed_decode(&xedd, binary_code, code_len);
     if (err != XED_ERROR_NONE)
     {
-        fprintf(stderr, "Decode error: %s\n", xed_error_enum_t2str(err));
+        fprintf(stderr, "[XED] Decode error: %s\n", xed_error_enum_t2str(err));
         return 1;
     }
 
@@ -109,7 +110,7 @@ int disassemble_with_xed(const uint8_t *binary_code, size_t code_len, uint64_t r
     }
     else
     {
-        fprintf(stderr, "Formatting error at 0x%04lx\n", runtime_addr);
+        fprintf(stderr, "[XED] Formatting error at 0x%04lx\n", runtime_addr);
         return 1;
     }
 
@@ -118,7 +119,7 @@ int disassemble_with_xed(const uint8_t *binary_code, size_t code_len, uint64_t r
 
     if (memops > 2)
     {
-        fprintf(stderr, "Too many XED memory operands: %u\n", memops);
+        fprintf(stderr, "[XED] Too many XED memory operands: %u\n", memops);
         return 1;
     }
 
@@ -130,7 +131,7 @@ int disassemble_with_xed(const uint8_t *binary_code, size_t code_len, uint64_t r
         xed_error_enum_t agen_error = xed_agen(&xedd, memop, (void *)context, &agen_address);
         if (agen_error != XED_ERROR_NONE)
         {
-            fprintf(stderr, "XED address generation failed for memop %u: %s\n",
+            fprintf(stderr, "[XED] XED address generation failed for memop %u: %s\n",
                     memop, xed_error_enum_t2str(agen_error));
             return 1;
         }

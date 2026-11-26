@@ -20,7 +20,6 @@ xed-compile:
 
 cli: src/cli.c src/xed.c src/xed.h src/ctd/ctd.c src/parser.c src/placement.c src/ctd/asm.S src/register_fill.c
 	gcc $(CFLAGS) $(XED_CFLAGS) src/ctd/ctd.c src/cli.c src/xed.c src/parser.c src/placement.c src/ctd/asm.S src/register_fill.c -o cli $(XED_LDFLAGS) $(XED_LIBS)
-	./cli
 
 fuzz: main
 	afl-fuzz -T "Daan & Simon" -o output -i input -G 32 -M main ./main

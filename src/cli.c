@@ -71,7 +71,7 @@ int main(int argc, char *argv[])
 
     if (xed_rv != 0)
     {
-        fprintf(stderr, "Error: XED disassembly failed.\n");
+        fprintf(stderr, "[XED] Error: XED disassembly failed.\n");
         return 1;
     }
 
