@@ -4,26 +4,31 @@
 #include <stdio.h>
 #include "xed/xed-interface.h"
 
-// Used for debugging
-int compare_xed_ctd(xed_answer_t *xed_answer, uint64_t *ctd_answer, xed_context *context){
-    if (ctd_answer == NULL) return -1;
+// Compare the CTD result with the trusted XED result.
+// `ct_rv` is essential here: CTD's `addr` output is only meaningful when
+// the decoder actually found a memory access (rv != 0). For instructions
+// without a memory operand, `addr` is derived from the bytes following the
+// opcode and must not be compared against XED's RAX fallback.
+int compare_xed_ctd(xed_answer_t *xed_answer, uint64_t *ctd_answer, int ct_rv, xed_context *context)
+{
+    if (xed_answer == NULL || ctd_answer == NULL || context == NULL)
+        return -1;
 
-    uint64_t xed_register_value;
-    if (xed_answer->memop_count == 0)
-    {
-        // CTD should return the `RAX` register
-        xed_register_value = context->rax;
-    }
-    else
-    {
-        // XED found that there was a non-trivial memory access..
-        // Then CTD should do the same memory access
-        xed_register_value = xed_answer->memop_addresses[0];
-    }
+    int ctd_has_mem = (ct_rv != 0);
+    int xed_has_mem = (xed_answer->memop_count > 0);
 
-    // return if both sources return the same value
-    if (xed_register_value == *ctd_answer) return 0; // ALL OK.
-    return -1; // NOT OK, CTD was not equal to the trusted source XED
+    // it is possible that the ctd misses some memory accesses for unsupported instructions
+    if (ctd_has_mem && !xed_has_mem)
+        return -1;
+
+    // Neither decoder found a memory operand: there is no address to compare.
+    if (!ctd_has_mem)
+        return 0;
+
+    // Both found one: XED is the trusted source for the effective address.
+    if (*ctd_answer == xed_answer->memop_addresses[0])
+        return 0; // ALL OK.
+    return -1;    // NOT OK, CTD was not equal to the trusted source XED
 }
 
 void print_xed_answer(const xed_answer_t *answer, uint64_t rax)
@@ -38,7 +43,6 @@ void print_xed_answer(const xed_answer_t *answer, uint64_t rax)
     for (unsigned int i = 0; i < answer->memop_count; i++)
         printf("[XED] xed_memop%u = %#" PRIx64 "\n", i, answer->memop_addresses[i]); // e.g. `xed_memop0 = 0x123456789abcdef`
 }
-
 
 static xed_uint64_t xed_segment_callback(xed_reg_enum_t reg, void *context, xed_bool_t *error)
 {
@@ -59,8 +63,36 @@ static xed_uint64_t xed_register_callback(xed_reg_enum_t reg, void *context, xed
     {
     case XED_REG_RAX:
         return c->rax;
+    case XED_REG_RCX:
+        return c->rcx;
+    case XED_REG_RDX:
+        return c->rdx;
+    case XED_REG_RBX:
+        return c->rbx;
+    case XED_REG_RSP:
+        return c->rsp;
+    case XED_REG_RBP:
+        return c->rbp;
+    case XED_REG_RSI:
+        return c->rsi;
+    case XED_REG_RDI:
+        return c->rdi;
     case XED_REG_R8:
         return c->r8;
+    case XED_REG_R9:
+        return c->r9;
+    case XED_REG_R10:
+        return c->r10;
+    case XED_REG_R11:
+        return c->r11;
+    case XED_REG_R12:
+        return c->r12;
+    case XED_REG_R13:
+        return c->r13;
+    case XED_REG_R14:
+        return c->r14;
+    case XED_REG_R15:
+        return c->r15;
     case XED_REG_RIP:
         return c->rip;
     default:
@@ -71,6 +103,8 @@ static xed_uint64_t xed_register_callback(xed_reg_enum_t reg, void *context, xed
 int disassemble_with_xed(const uint8_t *binary_code, size_t code_len, uint64_t runtime_addr,
                          const xed_context *context, xed_answer_t *answer)
 {
+    if (binary_code == NULL || context == NULL || answer == NULL) return 1;
+
     answer->memop_count = 0;
 
     // Initialize XED's internal decode/encode tables (must be called once)
@@ -106,7 +140,7 @@ int disassemble_with_xed(const uint8_t *binary_code, size_t code_len, uint64_t r
     if (ok)
     {
         // print the disassembled instruction (e.g. `add byte ptr [r8], al`)
-        printf("[XED] i = %s\n", disasm_buf); 
+        printf("[XED] i = %s\n", disasm_buf);
     }
     else
     {
@@ -123,12 +157,19 @@ int disassemble_with_xed(const uint8_t *binary_code, size_t code_len, uint64_t r
         return 1;
     }
 
+    // CTD uses the address of the instruction itself as the RIP base for
+    // RIP-relative operands, while XED adds the decoded instruction length
+    // to RIP internally. Give XED a RIP that is shifted back by that length
+    // so both decoders compute the address from the same base.
+    xed_context agen_context = *context;
+    agen_context.rip -= (uint64_t)xed_decoded_inst_get_length(&xedd);
+
     // for all memory operands, store the address
     // e.g. `xed_memop0 = 0x123456789abcdef`
     for (unsigned int memop = 0; memop < memops; memop++)
     {
         xed_uint64_t agen_address = 0;
-        xed_error_enum_t agen_error = xed_agen(&xedd, memop, (void *)context, &agen_address);
+        xed_error_enum_t agen_error = xed_agen(&xedd, memop, (void *)&agen_context, &agen_address);
         if (agen_error != XED_ERROR_NONE)
         {
             fprintf(stderr, "[XED] XED address generation failed for memop %u: %s\n",
