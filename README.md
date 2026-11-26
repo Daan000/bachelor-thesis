@@ -72,7 +72,7 @@ make fuzz
 
 Achter de schermen gebeurd er dan het volgende:
 ``` bash
-make main #Compile with afl using
+make main #Compile the main-harness with afl (using the afl-gcc compiler)
 mkdir input
 printf '\x90\xc3' > input/initial_corpus.bin # Start an initial fuzzing corpus
 afl-fuzz -T "Daan & Simon" -o output -i input -G 16 ./main # Then run the fuzzer, 

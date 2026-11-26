@@ -6,6 +6,8 @@
 
 // Used for debugging
 int compare_xed_ctd(xed_answer_t *xed_answer, uint64_t *ctd_answer, xed_context *context){
+    if (ctd_answer == NULL) return -1;
+
     uint64_t xed_register_value;
     if (xed_answer->memop_count == 0)
     {
@@ -14,17 +16,9 @@ int compare_xed_ctd(xed_answer_t *xed_answer, uint64_t *ctd_answer, xed_context 
     }
     else
     {
-        if (xed_answer->memop_count == 0){
-            // no registers are used,
-            // then CTD should return RAX
-            xed_register_value = context->rax;
-        }
-        else
-        {
-            // XED found that there was a non-trivial memory access..
-            // Then CTD should do the same memory access
-            xed_register_value = xed_answer->memop_addresses[0];
-        }
+        // XED found that there was a non-trivial memory access..
+        // Then CTD should do the same memory access
+        xed_register_value = xed_answer->memop_addresses[0];
     }
 
     // return if both sources return the same value
@@ -46,7 +40,6 @@ void print_xed_answer(const xed_answer_t *answer, uint64_t rax)
 }
 
 
-// Necessary
 static xed_uint64_t xed_segment_callback(xed_reg_enum_t reg, void *context, xed_bool_t *error)
 {
     (void)reg;
