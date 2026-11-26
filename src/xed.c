@@ -102,6 +102,8 @@ static xed_uint64_t xed_register_callback(xed_reg_enum_t reg, void *context, xed
 int disassemble_with_xed(const uint8_t *binary_code, size_t code_len, uint64_t runtime_addr,
                          const xed_context *context, xed_answer_t *answer)
 {
+    if (binary_code == NULL || context == NULL || answer == NULL) return 1;
+
     answer->memop_count = 0;
 
     // Initialize XED's internal decode/encode tables (must be called once)
@@ -154,12 +156,19 @@ int disassemble_with_xed(const uint8_t *binary_code, size_t code_len, uint64_t r
         return 1;
     }
 
+    // CTD uses the address of the instruction itself as the RIP base for
+    // RIP-relative operands, while XED adds the decoded instruction length
+    // to RIP internally. Give XED a RIP that is shifted back by that length
+    // so both decoders compute the address from the same base.
+    xed_context agen_context = *context;
+    agen_context.rip -= (uint64_t)xed_decoded_inst_get_length(&xedd);
+
     // for all memory operands, store the address
     // e.g. `xed_memop0 = 0x123456789abcdef`
     for (unsigned int memop = 0; memop < memops; memop++)
     {
         xed_uint64_t agen_address = 0;
-        xed_error_enum_t agen_error = xed_agen(&xedd, memop, (void *)context, &agen_address);
+        xed_error_enum_t agen_error = xed_agen(&xedd, memop, (void *)&agen_context, &agen_address);
         if (agen_error != XED_ERROR_NONE)
         {
             fprintf(stderr, "XED address generation failed for memop %u: %s\n",
