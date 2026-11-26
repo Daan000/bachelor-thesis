@@ -22,7 +22,10 @@ cli: src/cli.c src/xed.c src/xed.h src/ctd/ctd.c src/parser.c src/placement.c sr
 	gcc $(CFLAGS) $(XED_CFLAGS) src/ctd/ctd.c src/cli.c src/xed.c src/parser.c src/placement.c src/ctd/asm.S src/register_fill.c -o cli $(XED_LDFLAGS) $(XED_LIBS)
 
 fuzz: main
-	afl-fuzz -T "Daan & Simon" -o output -i input -G 32 -M main ./main
+	@bash -c ' \
+		trap "echo \"Fuzzing interrupted, running cleanup...\"; python3 scripts/fuzzing_cleanup/main.py" INT; \
+		afl-fuzz -T "Daan & Simon" -o output -i input -G 32 -M main ./main \
+	'
 
 main: src/main.c src/xed.c src/xed.h src/ctd/ctd.c src/parser.c src/placement.c src/ctd/asm.S src/register_fill.c
 	$(AFL_CC) $(CFLAGS) $(XED_CFLAGS) src/ctd/ctd.c src/main.c src/xed.c src/parser.c src/placement.c src/ctd/asm.S src/register_fill.c -o $@ $(XED_LDFLAGS) $(XED_LIBS)
