@@ -67,11 +67,18 @@ int main(int argc, char *argv[])
     xed_answer_t xed_answer;
     memset(&xed_answer, 0x0, sizeof(xed_answer_t));
 
-    int xed_rv = disassemble_with_xed(instruction_bytes, instruction_len, (uint64_t)instruction_address, &context, &xed_answer);
+    int xed_rv = disassemble_with_xed(
+        instruction_bytes,
+        sizeof(instruction_bytes),
+        (uint64_t)instruction_address,
+        &context,
+        &xed_answer
+    );
 
     if (xed_rv != 0)
     {
         fprintf(stderr, "[XED] Error: XED disassembly failed.\n");
+        fprintf(stderr, "[XED] Note that some x86 are not valid, so that they may be skipped.\n");
         return 1;
     }
 
